@@ -92,7 +92,7 @@
 
 <script>
 // ¡PEGAR AQUÍ TU URL NUEVA DE APPS SCRIPT!
-const SCRIPT_URL = "TU_URL_DE_APPS_SCRIPT_AQUI";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxoKmUB9B5sazrBJlqhT30zq6xQo0YY16vUdD-2Qmhl2sFzAmMj6QvAZI4QmofNjC2aHg/exec";
 
 let activos = [], tareas = [], recambios = [], proveedores = [];
 let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [];
