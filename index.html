@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Tradebe Amorebieta Molino v11.6 - Planta 2 (Pulpadas)</title>
+    <title>Tradebe Molino v11.6 - Planta 2 (Pulpadas)</title>
     <style>
         :root { 
             --blue: #0056b3;
@@ -92,7 +92,7 @@
 
 <script>
 // ¡PEGAR AQUÍ TU URL NUEVA DE APPS SCRIPT!
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybXwXxNfn-NzChu0T7ixt5Zl_AeL3WTLLnWLH5cEijs-YSBHoUjw4arJKuSFqIG2eC/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby62UNchD2JtsomWVUu7DGWNckO8RG6AQtaC9ze76pBXcvhwPBldp6vgdug69ZusFLozw/exec";
 
 let activos = [], tareas = [], recambios = [], proveedores = [];
 let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [];
@@ -126,12 +126,10 @@ async function login() {
         recambios = data.recambios || [];
         proveedores = data.proveedores || [];
         tiposExplosion = data.tiposExplosion || [];
-        nivelesEstallido = data.nivelesEstallido || [];
-        nivelesFuego = data.nivelesFuego || [];
         excelCreds = data.credenciales || {};
 
         if ((user === 'admin' && pass === '1234') || 
-            (user === 'diego' && pass === 'diego2') || 
+            (user === 'jordi' && pass === 'jordi2') || 
             (user === 'qsma' && pass === 'QSMA2') || 
             (excelCreds[user] && excelCreds[user].toString() === pass)) {
             
@@ -776,7 +774,7 @@ async function generarReporte(){
             finiD.setHours(0,0,0,0);
             const ffinD = new Date(ffin); ffinD.setHours(23,59,59,999);
             
-            html = `<table style="min-width:900px;"><thead><tr><th>Fecha</th><th>Turno</th><th>Operario</th><th>Lote</th><th>H Mol F</th><th>H Prod F</th><th>Lectura</th><th>Pulpadas Turno</th><th>Pulpadas Netas</th></tr></thead><tbody>`;
+            html = `<table style="min-width:900px;"><thead><tr><th>Fecha</th><th>Turno</th><th>Operario</th><th>Lote</th><th>H Mol F</th><th>H Prod F</th><th>-</th><th>Pulpadas Turno</th><th>Pulpadas Netas</th></tr></thead><tbody>`;
             dataRows.forEach(r => {
                 if(!r[0]) return;
                 const parts = r[0].split("/");
@@ -796,7 +794,7 @@ async function generarReporte(){
 }
 
 function descargarCSV(){
-    let csv = "sep=;\nFecha;Turno;Operario;Lote;H_Mol_F;H_Prod_F;Lectura;Pulpadas_Turno;Pulpadas_Netas\n";
+    let csv = "sep=;\nFecha;Turno;Operario;Lote;H_Mol_F;H_Prod_F;Vacio;Pulpadas_Turno;Pulpadas_Netas\n";
     reporteActual.forEach(r => { csv += r.slice(0,9).join(";") + "\n"; });
     const blob = new Blob(["\ufeff" + csv], { type:"text/csv;charset=utf-8;" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Reporte_Pulpadas_Tradebe.csv";
