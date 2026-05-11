@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Tradebe Molino v11.6 - Planta amorebieta (Pulpadas)</title>
+    <title>Tradebe Molino v11.6 - Planta 2 (Pulpadas)</title>
     <style>
         :root { 
             --blue: #0056b3;
@@ -99,6 +99,35 @@ let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [];
 let excelCreds = {}, reporteActual = [], reporteQSMAActual = [];
 let currentUser = "";
 
+// MODO A PRUEBA DE FALLOS: Evitar cerrar la pestaña o recargar si hay datos sin enviar
+window.addEventListener('beforeunload', function (e) {
+    if (hayDatosSinGuardar()) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+function hayDatosSinGuardar() {
+    if (!document.getElementById("app") || !document.getElementById("app").classList.contains("active")) return false;
+    let unsaved = false;
+    
+    if (document.getElementById("hmf")?.value || document.getElementById("hpf")?.value || document.getElementById("n_pulpadas")?.value || (document.getElementById("f_lote")?.value && document.getElementById("f_lote").value !== "N/A" && document.getElementById("f_lote").value !== "")) {
+        unsaved = true;
+    }
+    
+    const tareasInputs = document.querySelectorAll("#t-tareas tbody tr");
+    tareasInputs.forEach(tr => { if(tr.querySelector(".p") && tr.querySelector(".p").value !== "") unsaved = true; });
+    
+    const recambiosInputs = document.querySelectorAll("#t-recambios tbody tr");
+    recambiosInputs.forEach(tr => { if(tr.querySelector(".r-item") && tr.querySelector(".r-item").value !== "") unsaved = true; });
+    
+    if (document.getElementById("exp_material")?.value || document.getElementById("exp_tipo")?.value) {
+        unsaved = true;
+    }
+    
+    return unsaved;
+}
+
 async function login() {
     const user = document.getElementById('u').value.toLowerCase().trim();
     const pass = document.getElementById('p').value;
@@ -158,7 +187,12 @@ async function login() {
     }
 }
     
-function logout(){ location.reload(); }
+function logout(){ 
+    if (hayDatosSinGuardar() && !confirm("⚠️ Tienes datos en pantalla sin enviar. ¿Seguro que quieres cerrar sesión y perderlos?")) {
+        return;
+    }
+    location.reload(); 
+}
 
 function switchTab(tabId){
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -171,8 +205,8 @@ function renderOperario(name){
     const todayISO = new Date().toISOString().split("T")[0];
     const currentHour = new Date().getHours();
     let turnoAuto = "Mañana";
-    if (currentHour >= 15 && currentHour < 24) turnoAuto = "Tarde";
-    else if (currentHour >= 24 || currentHour < 7) turnoAuto = "Tarde"; 
+    if (currentHour >= 14 && currentHour < 22) turnoAuto = "Tarde";
+    else if (currentHour >= 22 || currentHour < 6) turnoAuto = "Tarde"; 
 
     document.getElementById("user-tag").innerText = "👤 " + name.toUpperCase();
     document.getElementById("view").innerHTML = `
@@ -193,7 +227,7 @@ function renderOperario(name){
         </div>
 
         <div class="tabs-nav">
-            <button class="tab-btn active" onclick="switchTab('tab-parte')">PARTE DE TRABAJO</button>
+            <button class="tab-btn active" onclick="switchTab('tab-parte')">PARTE FINAL DE TRABAJO</button>
             <button class="tab-btn" onclick="switchTab('tab-incidencias')">INCIDENCIAS</button>
             <button class="tab-btn" onclick="switchTab('tab-recambios-div')">RECAMBIOS</button>
             <button class="tab-btn danger" onclick="switchTab('tab-explosiones')">💥 EXPLOSIONES</button>
@@ -201,7 +235,7 @@ function renderOperario(name){
 
         <div id="tab-parte" class="tab-content active card">
             <div class="section-title">Datos Fin de Turno</div>
-            <input id="f_lote" placeholder="Nº LOTE / ORDEN" style="margin-bottom:15px">
+            <input id="f_lote" placeholder="Operador Seram" style="margin-bottom:15px">
 
             <div class="counters-grid">
                 <div class="input-group">
@@ -209,7 +243,7 @@ function renderOperario(name){
                     <input id="hmf" type="number" step="0.01" placeholder="Valor">
                 </div>
                 <div class="input-group">
-                    <label>H. Prod Final</label>
+                    <label>Horas de producción final</label>
                     <input id="hpf" type="number" step="0.01" placeholder="Valor">
                 </div>
                 <div class="input-group" style="border-color:var(--green); background:#f0fff4;">
@@ -420,10 +454,11 @@ function handleCantChange(input){
 
 function genH(){
     const t = document.getElementById('f_turno').value;
-    let i = t === "Mañana" ? 7 : 15; let f = t === "Mañana" ? 15 : 24;
+    let i = t === "Mañana" ? 6 : 14; let f = t === "Mañana" ? 14 : 22;
     let html = `<option value="">--:--</option>`;
     for (let h = i; h <= f; h++) {
         for (let m = 0; m < 60; m += 5) {
+            if (t === "Mañana" && h === 6 && m < 30) continue; 
             if (h === f && m > 0) break;
             let hh = String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
             html += `<option>${hh}</option>`;
@@ -453,7 +488,7 @@ async function enviarTodo(){
     const hpf = document.getElementById("hpf").value;
     const n_pulpadas = document.getElementById("n_pulpadas").value;
     if (hmf || hpf || n_pulpadas) {
-        if (!n_pulpadas) { alert("Pestaña Parte: Falta el número de pulpadas."); return; }
+        if (!n_pulpadas) { alert("Pestaña Parte Final de Trabajo: Falta el número de pulpadas."); return; }
         payload.parte = { h_mol_fin: hmf, h_prod_fin: hpf, n_pulpadas: n_pulpadas };
         hayDatos = true;
     }
@@ -518,6 +553,8 @@ async function enviarTodo(){
     try {
         await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
         alert("✔ Todos los datos se han guardado con éxito.");
+        
+        // Limpiamos todo para que el check "hayDatosSinGuardar" vuelva a false
         if (payload.parte) {
             ["f_lote","hmf","hpf","n_pulpadas"].forEach(id => document.getElementById(id).value = "");
             setTimeout(cargarHistorialProd, 2000);
