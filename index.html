@@ -91,15 +91,13 @@
     </div>
 
 <script>
-// ¡PEGAR AQUÍ TU URL NUEVA DE APPS SCRIPT!
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby62UNchD2JtsomWVUu7DGWNckO8RG6AQtaC9ze76pBXcvhwPBldp6vgdug69ZusFLozw/exec";
 
-let activos = [], tareas = [], recambios = [], proveedores = [];
+let activos = [], tareas = [], recambios = [], proveedores = [], forrosMolino = [];
 let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [];
 let excelCreds = {}, reporteActual = [], reporteQSMAActual = [];
 let currentUser = "";
 
-// MODO A PRUEBA DE FALLOS: Evitar cerrar la pestaña o recargar si hay datos sin enviar
 window.addEventListener('beforeunload', function (e) {
     if (hayDatosSinGuardar()) {
         e.preventDefault();
@@ -155,6 +153,7 @@ async function login() {
         recambios = data.recambios || [];
         proveedores = data.proveedores || [];
         tiposExplosion = data.tiposExplosion || [];
+        forrosMolino = data.forrosMolino || [];
         excelCreds = data.credenciales || {};
 
         if ((user === 'admin' && pass === '1234') || 
@@ -387,7 +386,7 @@ async function cargarIncidenciasAnteriores() {
         if (respuesta.fechaRef) titulo.innerText = "📅 Incidencias del " + respuesta.fechaRef;
         const data = respuesta.datos || [];
         if (!data || data.length === 0) { div.innerHTML = "<div style='color:#b58900; font-style:italic;'>Sin datos anteriores encontrados.</div>"; return; }
-        let html = `<table class="info-table"><thead><tr><th>Hora</th><th>Tarea</th><th>Activo</th><th>Obs</th></tr></thead><tbody>`;
+        let html = `<table class="info-table"><thead><tr><th>Hour</th><th>Tarea</th><th>Activo</th><th>Obs</th></tr></thead><tbody>`;
         data.forEach(d => { html += `<tr><td style="white-space:nowrap;">${d.hora}</td><td><b>${d.tarea}</b></td><td>${d.activo}</td><td><small>${d.obs}</small></td></tr>`; });
         html += `</tbody></table>`;
         div.innerHTML = html;
@@ -438,7 +437,19 @@ function handleCantChange(input){
     const container = row.querySelector(".pos-container");
     const cant = parseInt(input.value) || 0;
     container.innerHTML = "";
-    if ((item.includes("placa") || item.includes("martillo")) && cant > 0) {
+    
+    if (item.includes("martillo") && cant > 0) {
+        for (let i = 0; i < cant; i++) {
+            const div = document.createElement("div");
+            div.className = "pos-row";
+            const pos = document.createElement("input"); pos.type = "number"; pos.className = "pos-input"; pos.placeholder = "Posición";
+            const eje = document.createElement("input"); eje.type = "number"; eje.className = "pos-input"; eje.placeholder = "Eje";
+            const lado = document.createElement("select"); lado.className = "prov-input";
+            lado.innerHTML = `<option value="">Lado...</option><option value="Campa">Campa</option><option value="Autopista">Autopista</option>`;
+            div.appendChild(pos); div.appendChild(eje); div.appendChild(lado);
+            container.appendChild(div);
+        }
+    } else if (item.includes("placa") && cant > 0) {
         for (let i = 0; i < cant; i++) {
             const div = document.createElement("div");
             div.className = "pos-row";
@@ -447,6 +458,16 @@ function handleCantChange(input){
             prov.className = "prov-input";
             prov.innerHTML = `<option value="">Fabricante...</option>` + proveedores.map(p => `<option>${p}</option>`).join("");
             div.appendChild(pos); div.appendChild(prov);
+            container.appendChild(div);
+        }
+    } else if (item.includes("forro molino") && cant > 0) {
+        for (let i = 0; i < cant; i++) {
+            const div = document.createElement("div");
+            div.className = "pos-row";
+            const selForro = document.createElement("select");
+            selForro.className = "prov-input";
+            selForro.innerHTML = `<option value="">Seleccionar Forro...</option>` + forrosMolino.map(f => `<option>${f}</option>`).join("");
+            div.appendChild(selForro);
             container.appendChild(div);
         }
     }
@@ -514,12 +535,33 @@ async function enviarTodo(){
 
     // 3. RECOPILAR RECAMBIOS
     let recambiosValidos = Array.from(document.querySelectorAll("#t-recambios tbody tr"))
-        .map(tr => ({
-            item: tr.querySelector(".r-item").value, cant: tr.querySelector(".r-cant").value,
-            detalles: Array.from(tr.querySelectorAll(".pos-row")).map(r => ({
-                pos: r.querySelector(".pos-input").value, prov: r.querySelector(".prov-input").value
-            }))
-        })).filter(r => r.item !== "");
+        .map(tr => {
+            const itemVal = tr.querySelector(".r-item").value;
+            const itemLower = itemVal.toLowerCase();
+            return {
+                item: itemVal, 
+                cant: tr.querySelector(".r-cant").value,
+                detalles: Array.from(tr.querySelectorAll(".pos-row")).map(r => {
+                    if (itemLower.includes("martillo")) {
+                        const inputs = r.querySelectorAll("input");
+                        return {
+                            pos: inputs[0] ? inputs[0].value : "",
+                            eje: inputs[1] ? inputs[1].value : "",
+                            lado: r.querySelector("select") ? r.querySelector("select").value : ""
+                        };
+                    } else if (itemLower.includes("forro molino")) {
+                        return {
+                            forro: r.querySelector("select") ? r.querySelector("select").value : ""
+                        };
+                    } else {
+                        return {
+                            pos: r.querySelector(".pos-input") ? r.querySelector(".pos-input").value : "", 
+                            prov: r.querySelector(".prov-input") ? r.querySelector(".prov-input").value : ""
+                        };
+                    }
+                })
+            };
+        }).filter(r => r.item !== "");
         
     if (recambiosValidos.length > 0) {
         payload.recambios = recambiosValidos;
@@ -554,7 +596,6 @@ async function enviarTodo(){
         await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
         alert("✔ Todos los datos se han guardado con éxito.");
         
-        // Limpiamos todo para que el check "hayDatosSinGuardar" vuelva a false
         if (payload.parte) {
             ["f_lote","hmf","hpf","n_pulpadas"].forEach(id => document.getElementById(id).value = "");
             setTimeout(cargarHistorialProd, 2000);
