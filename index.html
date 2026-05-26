@@ -442,6 +442,7 @@ function handleCantChange(input){
         for (let i = 0; i < cant; i++) {
             const div = document.createElement("div");
             div.className = "pos-row";
+            const pos = document.createElement("input"); pos.type = "number"; pos.className = "pos-input"; pos.placeholder = "Posición";
             const eje = document.createElement("input"); eje.type = "number"; eje.className = "pos-input"; eje.placeholder = "Eje";
             const lado = document.createElement("select"); lado.className = "prov-input";
             lado.innerHTML = `<option value="">Lado...</option><option value="Campa">Campa</option><option value="Autopista">Autopista</option>`;
