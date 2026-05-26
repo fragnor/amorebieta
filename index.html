@@ -91,10 +91,10 @@
     </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRe0h6hFYhJ9pB0zocow1rQr4pfCyCsxmaLSqYb4BW7NgL-gYZu70a-Cx-n49As7MOTg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXgonZpSEFPJhhfIV1n1aSdxB5M8EEnYXBNANEC7DCg-z3415Krcc_ituFUyiExvz0/exec";
 
 let activos = [], tareas = [], recambios = [], proveedores = [], forrosMolino = [], materialesExplosion = [];
-let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [];
+let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [], operadoresSeram = [];
 let excelCreds = {}, reporteActual = [], reporteQSMAActual = [];
 let currentUser = "";
 
@@ -155,6 +155,7 @@ async function login() {
         tiposExplosion = data.tiposExplosion || [];
         forrosMolino = data.forrosMolino || [];
         materialesExplosion = data.materialesExplosion || [];
+        operadoresSeram = data.operadoresSeram || [];
         excelCreds = data.credenciales || {};
 
         if ((user === 'admin' && pass === '1234') || 
@@ -235,7 +236,11 @@ function renderOperario(name){
 
         <div id="tab-parte" class="tab-content active card">
             <div class="section-title">Datos Fin de Turno</div>
-            <input id="f_lote" placeholder="Operador Seram" style="margin-bottom:15px">
+            
+            <select id="f_lote" style="margin-bottom:15px">
+                <option value="">-- Seleccionar Operador Seram --</option>
+                ${operadoresSeram.map(o => `<option>${o}</option>`).join("")}
+            </select>
 
             <div class="counters-grid">
                 <div class="input-group">
@@ -314,7 +319,7 @@ function renderOperario(name){
                  </div>
                  <div>
                     <label style="font-weight:bold; color:#742a2a">Origen</label>
-                    <input id="exp_origen" placeholder="Lugar/Origen">
+                    <input id="exp_origen" placeholder="Lugar/Origen (si se le conoce)">
                  </div>
             </div>
 
@@ -420,7 +425,7 @@ function addFila(){
 }
 
 function addRecambio(){
-    const r = document.querySelector("#t-recambios tbody").insertRow();
+    const r = document.querySelector("#t-recambios tbody Zen").insertRow();
     r.innerHTML = `
         <td>
             <select class="r-item full-w" onchange="handleRecambioChange(this)">
@@ -479,13 +484,16 @@ function handleCantChange(input){
 
 function genH(){
     const t = document.getElementById('f_turno').value;
-    let i = t === "Mañana" ? 6 : 14; let f = t === "Mañana" ? 14 : 22;
+    let i = t === "Mañana" ? 6 : 14; 
+    let f = t === "Mañana" ? 15 : 24;
     let html = `<option value="">--:--</option>`;
     for (let h = i; h <= f; h++) {
         for (let m = 0; m < 60; m += 5) {
             if (t === "Mañana" && h === 6 && m < 30) continue; 
             if (h === f && m > 0) break;
-            let hh = String(h).padStart(2,"0") + ":" + String(m).padStart(2,"0");
+            
+            let displayH = h === 24 ? 0 : h;
+            let hh = String(displayH).padStart(2,"0") + ":" + String(m).padStart(2,"0");
             html += `<option>${hh}</option>`;
         }
     }
