@@ -91,7 +91,7 @@
     </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXgonZpSEFPJhhfIV1n1aSdxB5M8EEnYXBNANEC7DCg-z3415Krcc_ituFUyiExvz0/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby62UNchD2JtsomWVUu7DGWNckO8RG6AQtaC9ze76pBXcvhwPBldp6vgdug69ZusFLozw/exec";
 
 let activos = [], tareas = [], recambios = [], proveedores = [], forrosMolino = [], materialesExplosion = [];
 let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [], operadoresSeram = [];
@@ -319,7 +319,7 @@ function renderOperario(name){
                  </div>
                  <div>
                     <label style="font-weight:bold; color:#742a2a">Origen</label>
-                    <input id="exp_origen" placeholder="Lugar/Origen (si se le conoce)">
+                    <input id="exp_origen" placeholder="Lugar/Origen (si se conoce)">
                  </div>
             </div>
 
@@ -425,7 +425,7 @@ function addFila(){
 }
 
 function addRecambio(){
-    const r = document.querySelector("#t-recambios tbody Zen").insertRow();
+    const r = document.querySelector("#t-recambios tbody").insertRow();
     r.innerHTML = `
         <td>
             <select class="r-item full-w" onchange="handleRecambioChange(this)">
