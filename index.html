@@ -91,9 +91,9 @@
     </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykMMeWqVdzi5Rf2AH4NYylUHyn--8BFIXaagbe9Kh4kQtAE8IGAtzvwfCPSp0avDINFw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRe0h6hFYhJ9pB0zocow1rQr4pfCyCsxmaLSqYb4BW7NgL-gYZu70a-Cx-n49As7MOTg/exec";
 
-let activos = [], tareas = [], recambios = [], proveedores = [], forrosMolino = [];
+let activos = [], tareas = [], recambios = [], proveedores = [], forrosMolino = [], materialesExplosion = [];
 let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [];
 let excelCreds = {}, reporteActual = [], reporteQSMAActual = [];
 let currentUser = "";
@@ -154,6 +154,7 @@ async function login() {
         proveedores = data.proveedores || [];
         tiposExplosion = data.tiposExplosion || [];
         forrosMolino = data.forrosMolino || [];
+        materialesExplosion = data.materialesExplosion || [];
         excelCreds = data.credenciales || {};
 
         if ((user === 'admin' && pass === '1234') || 
@@ -298,7 +299,10 @@ function renderOperario(name){
             <div class="section-title" style="color:var(--red); border-color:var(--red);">⚠️ Registro de Incidente (Explosión)</div>
             
             <label style="font-weight:bold; color:#742a2a">Material introducido</label>
-            <input id="exp_material" placeholder="Descripción del material" style="margin-bottom:15px;">
+            <select id="exp_material" style="margin-bottom:15px;">
+                <option value="">-- Seleccionar Material --</option>
+                ${materialesExplosion.map(m => `<option>${m}</option>`).join("")}
+            </select>
             
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
                  <div>
@@ -309,8 +313,8 @@ function renderOperario(name){
                     </select>
                  </div>
                  <div>
-                    <label style="font-weight:bold; color:#742a2a"></label>
-                    <input id="exp_origen" placeholder="Lugar/Origen (si se conoce)">
+                    <label style="font-weight:bold; color:#742a2a">Origen</label>
+                    <input id="exp_origen" placeholder="Lugar/Origen">
                  </div>
             </div>
 
@@ -443,7 +447,7 @@ function handleCantChange(input){
             const div = document.createElement("div");
             div.className = "pos-row";
             const pos = document.createElement("input"); pos.type = "number"; pos.className = "pos-input"; pos.placeholder = "Posición";
-            const eje = document.createElement("input"); eje.type = "number"; eje.className = "pos-input"; eje.placeholder = "Eje";
+            const eje = document.createElement("input"); eje.type = "number"; eje.className = "pos-input"; pos.placeholder = "Eje";
             const lado = document.createElement("select"); lado.className = "prov-input";
             lado.innerHTML = `<option value="">Lado...</option><option value="Campa">Campa</option><option value="Autopista">Autopista</option>`;
             div.appendChild(pos); div.appendChild(eje); div.appendChild(lado);
