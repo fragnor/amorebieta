@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Tradebe Molino v11.6 - Planta 2 (Pulpadas)</title>
+    <title>Tradebe Molino v11.6 - Planta Amorebieta (Pulpadas)</title>
     <style>
         :root { 
             --blue: #0056b3;
@@ -70,7 +70,7 @@
     <div id="login-page" class="page-section active">
         <div class="login-card">
             <h2 style="margin-bottom:25px"><span style="color:var(--orange)">TRADE</span><span style="color:var(--green)">BE</span></h2>
-            <div style="font-size:0.8em; margin-bottom:10px; color:gray; font-weight:bold;">ACCESO PLANTA 2</div>
+            <div style="font-size:0.8em; margin-bottom:10px; color:gray; font-weight:bold;">ACCESO AMOREBIETA</div>
             <input id="u" placeholder="Usuario" style="margin-bottom:10px">
             <input id="p" type="password" placeholder="Contraseña" style="margin-bottom:20px">
             <button id="btnLogin" class="btn btn-blue" onclick="login()">ENTRAR AL SISTEMA</button>
@@ -82,7 +82,7 @@
         <div class="header">
             <div>
                 <span style="color:var(--orange); font-weight:900;">TRADE</span><span style="color:var(--green); font-weight:900;">BE</span>
-                <small style="margin-left:10px; color:#999">PLANTA 2 (Pulpadas) v11.6</small>
+                <small style="margin-left:10px; color:#999">AMOREBIETA (Pulpadas) v11.6</small>
             </div>
             <div id="user-tag" style="padding:5px 12px; background:#edf2f7; border-radius:20px; font-weight:bold;"></div>
             <button onclick="logout()" style="cursor:pointer; border:1px solid #ccc; padding:6px 12px; border-radius:6px; background:white;">Cerrar sesión</button>
@@ -91,7 +91,8 @@
     </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzV_WNVNNIakUCNFt-uZbQh-OTu04DI_iWyX5pKGtp2qF0QrODQwlBgrkgC_3aMdIWPRg/exec";
+// ¡ATENCIÓN! Recuerda actualizar esta URL por la de tu nuevo despliegue en Google Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDw3xSaZLhVeLdNf4XxZTQwl7cR1II-kD5-daamKeSdEogp7kaDTWHUEAcD1Y34uUjOw/exec";
 
 let activos = [], tareas = [], recambios = [], proveedores = [], forrosMolino = [], materialesExplosion = [];
 let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [], operadoresSeram = [];
