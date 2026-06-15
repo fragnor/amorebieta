@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Tradebe Molino v11.6 - Planta Amorebieta (Pulpadas)</title>
+    <title>Tradebe Molino v11.7 - Planta Amorebieta (Pulpadas)</title>
     <style>
         :root { 
             --blue: #0056b3;
@@ -29,10 +29,11 @@
         .tab-btn.danger.active { border-top-color: #c53030; color: #c53030; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .counters-grid { display: grid; grid-template-columns: 1fr; gap: 20px; background: #f1f4f8; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .counters-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f1f4f8; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        @media (max-width: 600px) { .counters-grid { grid-template-columns: 1fr; } }
         .input-group { display: flex; justify-content: space-between; align-items: center; background: var(--white); padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 10px; }
         .input-group label { font-size: 1em; font-weight: 600; color: #64748b; }
-        .input-group input { width: 150px; border: none; font-weight: bold; color: var(--blue); font-size: 1.3em; text-align:right; border-bottom: 2px solid #eee; }
+        .input-group input { width: 120px; border: none; font-weight: bold; color: var(--blue); font-size: 1.3em; text-align:right; border-bottom: 2px solid #eee; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #f8f9fa; color: #475569; padding: 12px; font-size: 0.8em; text-transform: uppercase; border-bottom: 2px solid var(--border); text-align: left;}
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
@@ -52,9 +53,9 @@
         .bubble-blue { background-color: #e3f2fd; border: 1px solid #90caf9; border-radius: 10px; padding: 15px; margin-top: 25px; }
         .bubble-title { color: #d48806; font-weight: bold; font-size: 0.9em; margin-bottom: 10px; display: block; }
         .bubble-title-blue { color: #1976d2; font-weight: bold; font-size: 0.9em; margin-bottom: 10px; display: block; }
-        .info-table { width: 100%; font-size: 0.85em; }
-        .info-table td { padding: 6px; border-bottom: 1px solid #fae39d; color: #555; }
-        .info-table th { background: transparent; color: #d48806; border-bottom: 2px solid #fae39d; padding: 6px; text-align: left; }
+        .info-table { width: 100%; font-size: 0.85em; margin-bottom: 15px; }
+        .info-table td { padding: 6px; border-bottom: 1px solid #dee2e6; color: #555; }
+        .info-table th { background: #f8f9fa; color: var(--blue); border-bottom: 2px solid var(--border); padding: 6px; text-align: left; }
         .prod-cards { display: flex; gap: 10px; justify-content: space-between; }
         .prod-card { background: white; flex:1; padding:10px; border-radius:8px; text-align:center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .prod-date { font-size:0.8em; color:#777; font-weight:bold; }
@@ -82,7 +83,7 @@
         <div class="header">
             <div>
                 <span style="color:var(--orange); font-weight:900;">TRADE</span><span style="color:var(--green); font-weight:900;">BE</span>
-                <small style="margin-left:10px; color:#999">AMOREBIETA (Pulpadas) v11.6</small>
+                <small style="margin-left:10px; color:#999">AMOREBIETA (Pulpadas) v11.7</small>
             </div>
             <div id="user-tag" style="padding:5px 12px; background:#edf2f7; border-radius:20px; font-weight:bold;"></div>
             <button onclick="logout()" style="cursor:pointer; border:1px solid #ccc; padding:6px 12px; border-radius:6px; background:white;">Cerrar sesión</button>
@@ -91,13 +92,42 @@
     </div>
 
 <script>
-// ¡ATENCIÓN! Recuerda actualizar esta URL por la de tu nuevo despliegue en Google Apps Script
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyDw3xSaZLhVeLdNf4XxZTQwl7cR1II-kD5-daamKeSdEogp7kaDTWHUEAcD1Y34uUjOw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-bqugsjh6bmV8_9rhoP-PrqcD-E3gEG6x-em9zA7eXhZ9zgz_GKT55afGzoIMd8p9JA/exec";
 
 let activos = [], tareas = [], recambios = [], proveedores = [], forrosMolino = [], materialesExplosion = [];
 let tiposExplosion = [], nivelesEstallido = [], nivelesFuego = [], operadoresSeram = [];
 let excelCreds = {}, reporteActual = [], reporteQSMAActual = [];
 let currentUser = "";
+
+// Función universal mejorada para parsear fechas
+function parsearFechaUniversal(valor) {
+    if (!valor) return null;
+    let str = valor.toString().trim();
+    
+    // Si Google Sheets nos manda un número de serie de Excel (ej: 45000 = año 2023+)
+    if (!isNaN(str) && Number(str) > 20000) {
+        let d = new Date(Math.round((Number(str) - 25569) * 86400 * 1000));
+        d.setHours(12,0,0,0);
+        return d;
+    }
+    
+    // Si viene como texto DD/MM/YYYY
+    if (str.includes("/")) {
+        let parts = str.split(/[ /]/);
+        if (parts.length >= 3) {
+            return new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}T12:00:00`);
+        }
+    }
+    
+    // Si es un ISO String nativo de JavaScript
+    let d = new Date(str);
+    if (!isNaN(d.getTime())) {
+        d.setHours(12, 0, 0, 0); 
+        return d;
+    }
+    
+    return null;
+}
 
 window.addEventListener('beforeunload', function (e) {
     if (hayDatosSinGuardar()) {
@@ -110,7 +140,7 @@ function hayDatosSinGuardar() {
     if (!document.getElementById("app") || !document.getElementById("app").classList.contains("active")) return false;
     let unsaved = false;
 
-    if (document.getElementById("hmf")?.value || document.getElementById("hpf")?.value || document.getElementById("n_pulpadas")?.value || (document.getElementById("f_lote")?.value && document.getElementById("f_lote").value !== "N/A" && document.getElementById("f_lote").value !== "")) {
+    if (document.getElementById("hmf")?.value || document.getElementById("hpf")?.value || document.getElementById("n_pulpadas")?.value || document.getElementById("agua_m3")?.value || document.getElementById("obs_materiales")?.value || (document.getElementById("f_lote")?.value && document.getElementById("f_lote").value !== "N/A" && document.getElementById("f_lote").value !== "")) {
         unsaved = true;
     }
 
@@ -138,7 +168,6 @@ async function login() {
 
     try {
         const response = await fetch(SCRIPT_URL);
-
         let data;
         try {
             data = await response.json();
@@ -162,6 +191,7 @@ async function login() {
         if ((user === 'admin' && pass === '1234') || 
             (user === 'jordi' && pass === 'jordi2') || 
             (user === 'qsma' && pass === 'QSMA2') || 
+            (user === 'produccion' && pass === 'produccion1') ||
             (excelCreds[user] && excelCreds[user].toString() === pass)) {
 
             currentUser = user;
@@ -171,6 +201,7 @@ async function login() {
             if (user === 'admin') renderAdmin();
             else if (user === 'jordi') renderJordi();
             else if (user === 'qsma') renderQSMA();
+            else if (user === 'produccion') renderProduccion();
             else {
                 renderOperario(user);
                 cargarIncidenciasAnteriores(); 
@@ -229,7 +260,7 @@ function renderOperario(name){
         </div>
 
         <div class="tabs-nav">
-            <button class="tab-btn active" onclick="switchTab('tab-parte')">PARTE FINAL DE TRABAJO</button>
+            <button class="tab-btn active" onclick="switchTab('tab-parte')">PARTE DE TRABAJO</button>
             <button class="tab-btn" onclick="switchTab('tab-incidencias')">INCIDENCIAS</button>
             <button class="tab-btn" onclick="switchTab('tab-recambios-div')">RECAMBIOS</button>
             <button class="tab-btn danger" onclick="switchTab('tab-explosiones')">💥 EXPLOSIONES</button>
@@ -256,7 +287,14 @@ function renderOperario(name){
                     <label style="color:var(--green);">Nº de Pulpadas</label>
                     <input id="n_pulpadas" type="number" step="1" placeholder="Cantidad" style="background:#f0fff4; color:var(--green);">
                 </div>
+                <div class="input-group" style="border-color:#0ea5e9; background:#f0f9ff;">
+                    <label style="color:#0ea5e9;">Agua (m³)</label>
+                    <input id="agua_m3" type="number" step="0.01" placeholder="m³" style="background:#f0f9ff; color:#0ea5e9;">
+                </div>
             </div>
+
+            <label style="font-size:0.9em; font-weight:600; color:#64748b; display:block; margin-bottom:5px;">Observaciones Materiales</label>
+            <textarea id="obs_materiales" rows="2" placeholder="Observaciones específicas sobre los materiales..." style="margin-bottom:20px;"></textarea>
 
             <button class="btn btn-blue" onclick="enviarTodo()">ENVIAR DATOS AHORA</button>
 
@@ -523,9 +561,12 @@ async function enviarTodo(){
     const hmf = document.getElementById("hmf").value;
     const hpf = document.getElementById("hpf").value;
     const n_pulpadas = document.getElementById("n_pulpadas").value;
-    if (hmf || hpf || n_pulpadas) {
-        if (!n_pulpadas) { alert("Pestaña Parte Final de Trabajo: Falta el número de pulpadas."); return; }
-        payload.parte = { h_mol_fin: hmf, h_prod_fin: hpf, n_pulpadas: n_pulpadas };
+    const agua_m3 = document.getElementById("agua_m3")?.value;
+    const obs_materiales = document.getElementById("obs_materiales")?.value;
+
+    if (hmf || hpf || n_pulpadas || agua_m3 || obs_materiales) {
+        if (!n_pulpadas) { alert("Pestaña Parte de Trabajo: Falta el número de pulpadas."); return; }
+        payload.parte = { h_mol_fin: hmf, h_prod_fin: hpf, n_pulpadas: n_pulpadas, agua_m3: agua_m3, obs_materiales: obs_materiales };
         hayDatos = true;
     }
 
@@ -612,7 +653,7 @@ async function enviarTodo(){
         alert("✔ Todos los datos se han guardado con éxito.");
 
         if (payload.parte) {
-            ["f_lote","hmf","hpf","n_pulpadas"].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ""; });
+            ["f_lote","hmf","hpf","n_pulpadas","agua_m3","obs_materiales"].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = ""; });
             setTimeout(cargarHistorialProd, 2000);
         }
         if (payload.incidencias) {
@@ -683,10 +724,8 @@ function procesarDatosJordi(dataRows, finiD, ffinD) {
     const fin = new Date(ffinD); fin.setHours(23,59,59,999);
 
     dataRows.forEach(r => {
-        if (!r[0]) return;
-        const parts = r[0].split("/");
-        if(parts.length !== 3) return;
-        const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00`);
+        let d = parsearFechaUniversal(r[0]);
+        if (!d) return;
 
         if (d >= ini && d <= fin) {
             let valNeto = r[8];
@@ -704,8 +743,8 @@ function generarTablaJordi(agrupado) {
     if (fechas.length === 0) return "<div style='padding:10px; color:gray'>No hay datos en este rango.</div>";
 
     fechas.sort((a,b) => {
-        let [da,ma,ya] = a.split("/"); let [db,mb,yb] = b.split("/");
-        return new Date(`${yb}-${mb}-${db}`) - new Date(`${ya}-${ma}-${da}`);
+        let da = parsearFechaUniversal(a); let db = parsearFechaUniversal(b);
+        return db - da; 
     });
 
     let html = `<table style="width:100%;"><thead><tr><th>Fecha</th><th>Pulpadas Totales</th></tr></thead><tbody>`;
@@ -766,11 +805,8 @@ async function cargarQSMAAuto() {
 
         let hayDatos = false;
         dataRows.forEach(r => {
-            if (!r[0]) return;
-            const parts = r[0].split("/");
-            if(parts.length !== 3) return;
-            const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00`);
-            if (d >= hace3) {
+            let d = parsearFechaUniversal(r[0]);
+            if (d && d >= hace3) {
                 hayDatos = true;
                 html += `<tr>${r.slice(0,13).map(c => `<td>${c}</td>`).join("")}</tr>`;
             }
@@ -801,12 +837,8 @@ async function generarReporteQSMA(){
             </tr></thead><tbody>`;
 
         dataRows.forEach(r => {
-            if(!r[0]) return;
-            const parts = r[0].split("/");
-            if(parts.length !== 3) return;
-            const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00`);
-
-            if (d >= finiD && d <= ffinD) { 
+            let d = parsearFechaUniversal(r[0]);
+            if (d && d >= finiD && d <= ffinD) { 
                 reporteQSMAActual.push(r); 
                 html += `<tr>${r.slice(0,13).map(c => `<td>${c}</td>`).join("")}</tr>`; 
             }
@@ -830,6 +862,143 @@ function descargarCSVQSMA(){
     const blob = new Blob(["\ufeff" + csv], { type:"text/csv;charset=utf-8;" });
     const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Reporte_Explosiones_QSMA.csv";
     link.click();
+}
+
+// PERFIL PRODUCCIÓN
+function renderProduccion(){
+    document.getElementById("user-tag").innerText = "🏭 PRODUCCIÓN";
+    document.getElementById("view").innerHTML = `
+        <div class="card" style="border-top:4px solid var(--green);">
+            <div class="section-title">Resumen Automático: Últimos 5 días</div>
+            <div id="prod-auto"><i style="color:gray;">Cargando histórico reciente...</i></div>
+        </div>
+        <div class="card" style="border-top:4px solid var(--blue);">
+            <div class="section-title">Búsqueda por Rango de Fechas</div>
+            <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+                <div><label style="font-size:0.8em; font-weight:bold; color:gray;">Desde</label><br><input type="date" id="f_ini_prod"></div>
+                <div><label style="font-size:0.8em; font-weight:bold; color:gray;">Hasta</label><br><input type="date" id="f_fin_prod"></div>
+                <button class="btn btn-blue" onclick="buscarReporteProduccion()">CONSULTAR PERIODO</button>
+            </div>
+            <div style="margin-top:20px;" id="prod-report-output"></div>
+        </div>
+    `;
+    cargarProduccionAuto();
+}
+
+function procesarYMostrarProduccion(dataPartes, dataRecambios, fechaIni, fechaFin, elementId) {
+    let out = document.getElementById(elementId);
+    
+    // Tabla 1: Producción
+    let partesHtml = `<h3 style="color:var(--blue); font-size:1em; margin-bottom:10px;">📋 Horas de Producción y Pulpadas</h3>`;
+    let filtradosPartes = dataPartes.filter(r => {
+        let d = parsearFechaUniversal(r[0]);
+        return d && (d >= fechaIni && d <= fechaFin);
+    });
+    
+    if(filtradosPartes.length === 0) {
+        partesHtml += "<p style='color:gray; font-size:0.9em; padding-left:10px;'>No hay datos de producción registrados en estas fechas.</p>";
+    } else {
+        partesHtml += `<table class="info-table">
+            <thead>
+                <tr><th>Fecha</th><th>Turno</th><th>Operario</th><th>Lote</th><th>Horas Prod.</th><th>Nº Pulpadas</th></tr>
+            </thead>
+            <tbody>`;
+        filtradosPartes.forEach(r => {
+            partesHtml += `<tr>
+                <td>${r[0]}</td>
+                <td>${r[1]}</td>
+                <td>${r[2]}</td>
+                <td>${r[3]}</td>
+                <td style="font-weight:bold; color:var(--dark);">${r[5] || 0} h</td>
+                <td style="font-weight:bold; color:var(--green);">${r[7] || 0}</td>
+            </tr>`;
+        });
+        partesHtml += `</tbody></table>`;
+    }
+
+    // Tabla 2: Recambios (Mapeo robusto a r[3] y r[4])
+    let recambiosHtml = `<h3 style="color:var(--orange); font-size:1em; margin-top:25px; margin-bottom:10px;">🔧 Recambios Utilizados</h3>`;
+    
+    if (!Array.isArray(dataRecambios) || dataRecambios.length === 0) {
+        recambiosHtml += "<p style='color:#dc3545; font-size:0.9em; padding-left:10px;'>Aviso: La pestaña de recambios en Excel está vacía o no se pudo cargar.</p>";
+    } else {
+        let filtradosRecambios = dataRecambios.filter(r => {
+            // Saltamos las filas que no tengan un recambio escrito en la Columna D (índice 3)
+            if (!r[3] || r[3].toString().trim() === "") return false;
+            
+            let d = parsearFechaUniversal(r[0]);
+            // Si no podemos entender la fecha pero tiene datos, lo mostramos por seguridad si estamos en un rango amplio,
+            // pero para no ensuciar la tabla, nos ceñimos a la fecha.
+            return d && (d >= fechaIni && d <= fechaFin);
+        });
+
+        if(filtradosRecambios.length === 0) {
+            recambiosHtml += "<p style='color:gray; font-size:0.9em; padding-left:10px;'>No hay recambios registrados en este periodo temporal.</p>";
+        } else {
+            recambiosHtml += `<table class="info-table">
+                <thead>
+                    <tr><th>Fecha</th><th>Turno</th><th>Operario</th><th>Recambio</th><th>Cant.</th><th>Detalles</th></tr>
+                </thead>
+                <tbody>`;
+            filtradosRecambios.forEach(r => {
+                recambiosHtml += `<tr>
+                    <td>${r[0]}</td>
+                    <td>${r[1]}</td>
+                    <td>${r[2]}</td>
+                    <td><b>${r[3]}</b></td>
+                    <td><span style="background:var(--light); padding:2px 8px; border-radius:10px; font-weight:bold;">${r[4] || 1}</span></td>
+                    <td><small>${r[5] || ""}</small></td>
+                </tr>`;
+            });
+            recambiosHtml += `</tbody></table>`;
+        }
+    }
+    
+    out.innerHTML = partesHtml + recambiosHtml;
+}
+
+async function cargarProduccionAuto() {
+    const out = document.getElementById("prod-auto");
+    try {
+        const resPartes = await fetch(SCRIPT_URL + "?action=getReport");
+        const dataPartes = await resPartes.json();
+        
+        const resRecambios = await fetch(SCRIPT_URL + "?action=getRecambios");
+        const dataRecambios = await resRecambios.json();
+        
+        let hoy = new Date();
+        let hace5 = new Date();
+        hace5.setDate(hoy.getDate() - 4);
+        hace5.setHours(0,0,0,0);
+        let fin = new Date(); fin.setHours(23,59,59,999);
+        
+        procesarYMostrarProduccion(dataPartes, dataRecambios, hace5, fin, "prod-auto");
+    } catch(e) {
+        out.innerHTML = "<span style='color:var(--red)'>Error cargando los datos del resumen.</span>";
+    }
+}
+
+async function buscarReporteProduccion() {
+    const fini = document.getElementById("f_ini_prod").value;
+    const ffin = document.getElementById("f_fin_prod").value;
+    const out = document.getElementById("prod-report-output");
+    if (!fini || !ffin) return;
+    out.innerHTML = "<div style='padding:20px; text-align:center; color:gray'>Consultando...</div>";
+    
+    try {
+        const resPartes = await fetch(SCRIPT_URL + "?action=getReport");
+        const dataPartes = await resPartes.json();
+        
+        const resRecambios = await fetch(SCRIPT_URL + "?action=getRecambios");
+        const dataRecambios = await resRecambios.json();
+        
+        const finiD = new Date(fini); finiD.setHours(0,0,0,0);
+        const ffinD = new Date(ffin); ffinD.setHours(23,59,59,999);
+        
+        procesarYMostrarProduccion(dataPartes, dataRecambios, finiD, ffinD, "prod-report-output");
+    } catch(e) {
+        out.innerHTML = "<span style='color:var(--red)'>Error cargando el rango solicitado.</span>";
+    }
 }
 
 async function addExt(acc, inp){
@@ -863,18 +1032,13 @@ async function generarReporte(){
             let agrupado = procesarDatosJordi(dataRows, new Date(fini), new Date(ffin));
             html = generarTablaJordi(agrupado);
         } else {
-            const finiD = new Date(fini);
-            finiD.setHours(0,0,0,0);
+            const finiD = new Date(fini); finiD.setHours(0,0,0,0);
             const ffinD = new Date(ffin); ffinD.setHours(23,59,59,999);
 
             html = `<table style="min-width:900px;"><thead><tr><th>Fecha</th><th>Turno</th><th>Operario</th><th>Lote</th><th>H Mol F</th><th>H Prod F</th><th>-</th><th>Pulpadas Turno</th><th>Pulpadas Netas</th></tr></thead><tbody>`;
             dataRows.forEach(r => {
-                if(!r[0]) return;
-                const parts = r[0].split("/");
-                if(parts.length !== 3) return;
-                const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00`);
-
-                if (d >= finiD && d <= ffinD) { 
+                let d = parsearFechaUniversal(r[0]);
+                if (d && d >= finiD && d <= ffinD) { 
                     reporteActual.push(r); 
                     html += `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td><td style="font-weight:bold">${r[7]}</td><td style="color:blue">${r[8]}</td></tr>`; 
                 }
