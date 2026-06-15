@@ -190,7 +190,7 @@ async function login() {
 
         if ((user === 'admin' && pass === '1234') || 
             (user === 'jordi' && pass === 'jordi2') || 
-            (user === 'qsma' && pass === 'QSMA2') || 
+            (user === 'qsma' && pass === 'qsma1') || 
             (user === 'produccion' && pass === 'produccion1') ||
             (excelCreds[user] && excelCreds[user].toString() === pass)) {
 
@@ -770,7 +770,7 @@ function renderQSMA(){
     document.getElementById("user-tag").innerText = "🛡️ QSMA";
     document.getElementById("view").innerHTML = `
         <div class="card" style="border-top:4px solid var(--red);">
-            <div class="section-title" style="color:var(--red);">Últimos Incidentes / Explosiones (3 días)</div>
+            <div class="section-title" style="color:var(--red);">Todos los Incidentes / Explosiones Registrados</div>
             <div id="qsma-auto" style="min-height:50px; overflow-x: auto;"><i style="color:gray;">Cargando datos recientes...</i></div>
         </div>
         <div class="card" style="border-top:4px solid var(--orange);">
@@ -794,25 +794,19 @@ async function cargarQSMAAuto() {
         const dataRows = await res.json();
         if (!dataRows || dataRows.length === 0) { out.innerHTML = "<div style='color:gray'>No hay explosiones registradas.</div>"; return; }
 
-        let hoy = new Date();
-        let hace3 = new Date();
-        hace3.setDate(hoy.getDate() - 3); 
-        hace3.setHours(0,0,0,0);
-
         let html = `<table class="info-table" style="white-space:nowrap;"><thead><tr>
             <th>Fecha</th><th>Turno</th><th>Operario</th><th>Lote</th><th>Material</th><th>Origen</th><th>Tipo</th><th>Estallido</th><th>Fuego</th><th>Parada</th><th>Daños</th><th>Obs</th><th>Calif</th>
             </tr></thead><tbody>`;
 
         let hayDatos = false;
         dataRows.forEach(r => {
-            let d = parsearFechaUniversal(r[0]);
-            if (d && d >= hace3) {
+            if (r && r.length > 0 && r[0]) {
                 hayDatos = true;
                 html += `<tr>${r.slice(0,13).map(c => `<td>${c}</td>`).join("")}</tr>`;
             }
         });
         html += "</tbody></table>";
-        out.innerHTML = hayDatos ? html : "<div style='color:gray; padding:10px;'>No se han registrado explosiones en los últimos 3 días.</div>";
+        out.innerHTML = hayDatos ? html : "<div style='color:gray; padding:10px;'>No se han registrado explosiones.</div>";
     } catch(e) { out.innerHTML = "<span style='color:var(--red)'>Error cargando datos de explosiones.</span>"; }
 }
 
@@ -869,7 +863,7 @@ function renderProduccion(){
     document.getElementById("user-tag").innerText = "🏭 PRODUCCIÓN";
     document.getElementById("view").innerHTML = `
         <div class="card" style="border-top:4px solid var(--green);">
-            <div class="section-title">Resumen Automático: Últimos 5 días</div>
+            <div class="section-title">Resumen Automático: Últimos 5 days</div>
             <div id="prod-auto"><i style="color:gray;">Cargando histórico reciente...</i></div>
         </div>
         <div class="card" style="border-top:4px solid var(--blue);">
